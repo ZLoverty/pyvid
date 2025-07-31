@@ -9,7 +9,7 @@
 ## Installation
 
 ```
-git clone https://github.com/ZLoverty/pyvid.git
+pip install git+https://github.com/ZLoverty/pyvid.git
 ```
 
 ## Basic guide

@@ -10,9 +10,18 @@ authors = [{ name = "Zhengyang Liu", email = "liuzy19911112@example.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
+dependencies = [
+    "dependencies",
+    "pyqt5",
+    "pyvista",
+    "pyvistaqt",
+    "scipy",
+    "numpy"
+]
 
 [project.urls]
 Homepage = "https://github.com/zloverty/pyvid"
 
 [tool.setuptools]
 packages = ["pyvid"]
+
