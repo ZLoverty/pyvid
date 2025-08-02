@@ -318,3 +318,9 @@ class Scene(BackgroundPlotter):
         self.t0 = 0
         self.t = None # The time sequence
         self.camera_keyframes = None 
+    
+    def print_camera_position(self):
+        """Print camera position in a more readable format: less digits, fixed format, scientific representation."""
+        cp = list(self.camera_position)
+        for row in cp:
+            print(f"{row[0]:1.1e}, {row[1]:1.1e}, {row[2]:1.1e}")
