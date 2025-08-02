@@ -10,15 +10,20 @@ class Scene(BackgroundPlotter):
         super().__init__(**kwargs)
         self.clear_all()
 
-    def Sphere(self, data, **kwargs):
+    def Sphere(self, 
+               data : dict, 
+               sphere_specs : dict = {}, 
+               mesh_specs : dict = {}):
         """Add mesh as actor to scene. 
 
         Parameters
         ----------
-        mesh : pyvista.DataSet
-            The mesh to be added.
         data : dict
             Trajectory data, must contain 't' and 'x'.
+        sphere_specs : dict
+            Keyword arguments that are passed on to `pyvista.Sphere()`.
+        mesh_specs : dict
+            Keyword arguments that are passed on to `pyvista.Plotter.add_mesh()`.
         
         Returns
         -------
@@ -32,21 +37,26 @@ class Scene(BackgroundPlotter):
         self.t0 = min(self.t0, t.min())
 
         # add actor
-        actor = self.add_mesh(pv.Sphere(**kwargs))
+        actor = self.add_mesh(pv.Sphere(**sphere_specs), **mesh_specs)
         actor_data = (actor, {"t": t, "x": x})
         self.actor_list.append(actor_data)
 
         return actor
 
-    def Box(self, data, **kwargs):
+    def Box(self, 
+            data, 
+            box_specs : dict = {},
+            mesh_specs : dict = {}):
         """Add mesh as actor to scene. 
 
         Parameters
         ----------
-        mesh : pyvista.DataSet
-            The mesh to be added.
         data : dict
             Trajectory data, must contain 't' and 'x'.
+        box_specs : dict
+            Keyword arguments that are passed on to `pyvista.Box()`.
+        mesh_specs : dict
+            Keyword arguments that are passed on to `pyvista.Plotter.add_mesh()`.
         
         Returns
         -------
@@ -60,7 +70,7 @@ class Scene(BackgroundPlotter):
         self.t0 = min(self.t0, t.min())
 
         # add actor
-        actor = self.add_mesh(pv.Box(**kwargs))
+        actor = self.add_mesh(pv.Box(**box_specs), **mesh_specs)
         actor_data = (actor, {"t": t, "x": x})
         self.actor_list.append(actor_data)
 
@@ -89,22 +99,29 @@ class Scene(BackgroundPlotter):
 
         return t, x
 
-    def Glyph(self, data, name, factor=1.0, **kwargs):
+    def Glyph(self, 
+              data : dict,  
+              glyph_specs : dict = {},
+              mesh_specs : dict = {}):
         """Add glyph actor to the scene.
         
         Parameters
         ----------
         data : dict
             Glyph data, containing "t", "x" and "v". "x" and "v" are both (M, N, 3), where M is the number of time steps and N is the number of points.
-        name : str
-            Name used to set the actor name, in order to update the scene.
-        factor : float
-            Scale factor of glyph length.
+        sphere_specs : dict
+            Keyword arguments that are passed on to `pyvista.Sphere()`.
+        mesh_specs : dict
+            Keyword arguments that are passed on to `pyvista.Plotter.add_mesh()`.
         
         Returns
         -------
         actor : pv.Actor
             Glyph actor object. Can be used to set actor properties.
+
+        Note
+        ----
+        To update the glyph actor in the scene, it is required to pass a "name" to the mesh, so that the old mesh is replaced.
         """
         t = np.asarray(data["t"])
         x = np.asarray(data["x"])
@@ -115,11 +132,11 @@ class Scene(BackgroundPlotter):
         self.t0 = min(self.t0, t.min())
 
         # create glyph PolyData
-        glyph = self._gen_glyph(x[0], v[0], factor=factor)
+        glyph = self._gen_glyph(x[0], v[0], **glyph_specs)
 
         # add actor
-        actor = self.add_mesh(glyph, name=name, **kwargs)
-        actor_data = (actor, {"t": t, "x": x, "v": v}, name, factor, kwargs)
+        actor = self.add_mesh(glyph, **mesh_specs)
+        actor_data = (actor, {"t": t, "x": x, "v": v}, glyph_specs, mesh_specs)
         self.glyph_list.append(actor_data)
         return actor
 
@@ -220,7 +237,7 @@ class Scene(BackgroundPlotter):
         
         # interpolate glyph data
         glyph_list_interp = []
-        for actor, data, name, factor, kwargs in self.glyph_list:
+        for actor, data, glyph_specs, mesh_specs in self.glyph_list:
             interp_data = {}
             for kw in data:
                 if kw == "t":
@@ -228,7 +245,7 @@ class Scene(BackgroundPlotter):
                 else:
                     f = interp1d(data["t"], data[kw], axis=0, bounds_error=False)
                     interp_data[kw] = f(t)
-            glyph_list_interp.append((actor, interp_data, name, factor, kwargs))
+            glyph_list_interp.append((actor, interp_data, glyph_specs, mesh_specs))
 
         # interpolate camera motion    
         t_cp = np.asarray([float(t_) for t_, _ in self.camera_keyframes])
@@ -262,11 +279,11 @@ class Scene(BackgroundPlotter):
                 new_position = data["x"][step[0]]
                 actor.SetPosition(new_position)
             # update glyphs
-            for glyph, data, name, factor, kwargs in glyph_list_interp:
+            for glyph, data, glyph_specs, mesh_specs in glyph_list_interp:
                 new_x = data["x"][step[0]]
                 new_v = data["v"][step[0]]
-                glyph = self._gen_glyph(new_x, new_v, factor=factor)
-                self.add_mesh(glyph, name=name, **kwargs)
+                glyph = self._gen_glyph(new_x, new_v, **glyph_specs)
+                self.add_mesh(glyph, **mesh_specs)
             # update camera positions
             self.camera_position = camera_positions[step[0]]
             self.render() 
@@ -291,7 +308,7 @@ class Scene(BackgroundPlotter):
             for actor, _ in l:
                 self.remove_actor(actor)
             l = getattr(self, "glyph_list")
-            for actor, _, _, _, _ in l:
+            for actor, _, _, _ in l:
                 self.remove_actor(actor)
         except AttributeError:
             pass

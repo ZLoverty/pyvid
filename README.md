@@ -43,5 +43,6 @@ to save the animation in a video file.
 ## Versions
 
 - 0.1.0: First version.
+- 0.1.1: Rewrite `Sphere`, `Box` and `Glyph` to include all the kwargs for both actor and mesh, using dict as arguments.
 
 ## Enhancedment proposals (PVEP)

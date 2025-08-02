@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyvid"
-version = "0.1.0"
+version = "0.1.1"
 description = "a 3D animation cdata visualization tool based on pyvista."
 authors = [{ name = "Zhengyang Liu", email = "liuzy19911112@example.com" }]
 readme = "README.md"
