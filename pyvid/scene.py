@@ -9,6 +9,7 @@ class Scene(BackgroundPlotter):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.clear_all()
+        self.time_stamp = self.add_text(f"{0:.2f} ms")
 
     def Sphere(self, 
                data : dict, 
@@ -285,6 +286,7 @@ class Scene(BackgroundPlotter):
                 glyph = self._gen_glyph(new_x, new_v, **glyph_specs)
                 self.add_mesh(glyph, **mesh_specs)
             # update camera positions
+            self.time_stamp.set_text("upper_left", f"{t[step[0]]*1000:.2f} ms")
             self.camera_position = camera_positions[step[0]]
             self.render() 
 
@@ -323,4 +325,4 @@ class Scene(BackgroundPlotter):
         """Print camera position in a more readable format: less digits, fixed format, scientific representation."""
         cp = list(self.camera_position)
         for row in cp:
-            print(f"{row[0]:1.1e}, {row[1]:1.1e}, {row[2]:1.1e}")
+            print(f"[{row[0]:1.1e}, {row[1]:1.1e}, {row[2]:1.1e}]")
