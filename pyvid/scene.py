@@ -4,6 +4,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from PyQt5.QtCore import QTimer
 from pathlib import Path
+from subprocess import run
 
 class Scene(BackgroundPlotter):
     def __init__(self, **kwargs):
@@ -183,7 +184,7 @@ class Scene(BackgroundPlotter):
         """
         self.camera_keyframes = keyframes
 
-    def play(self, fps=30, playback=1.0, t_range=None, record=False, save_folder=None):
+    def play(self, fps=30, playback=1.0, t_range=None, record=False, file_dir=None):
         """Play animation.
         
         Parameters
@@ -200,7 +201,8 @@ class Scene(BackgroundPlotter):
             [tmin, tmax], the animation is limited by this range.  
         record : bool
             Whether to generate a video. Default to False.
-        
+        file_dir : str
+            Full directory of the animation video file to be generated.
         """
         
         if self.t is not None: # if self.t is already set by self.set_time()
@@ -257,7 +259,8 @@ class Scene(BackgroundPlotter):
         # if record to file, create folders if necessary
         if record:
             try:
-                save_folder = Path(save_folder).expanduser().resolve()
+                file_dir = Path(file_dir).expanduser().resolve()
+                save_folder = file_dir.parent
             except TypeError:
                 raise TypeError("Set save_folder to a dir string.")
             tmp_folder = save_folder / "_tmp"
@@ -274,6 +277,16 @@ class Scene(BackgroundPlotter):
             if step[0] >= len(t)-1:
                 timer.stop()
                 print(f"Animation complete ({step[0]:d}/{len(t)-1:d}).")
+                # make video
+                if record:
+                    run(["ffmpeg", "-framerate", f"{fps}", "-y",
+                            "-i", tmp_folder / "%04d.jpg", 
+                            file_dir], check=True)
+
+                    # remove temporary screenshots
+                    for f in tmp_folder.iterdir():
+                        f.unlink()
+                    tmp_folder.rmdir()
                 return
             # update actors
             for actor, data in actor_list_interp:
